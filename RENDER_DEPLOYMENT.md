@@ -7,9 +7,11 @@ This guide helps you deploy Tabbycat on Render.com using their free tier service
 Tabbycat requires **4 services** on Render's free tier:
 
 1. **Web Service** - Main Django application
-2. **Background Worker** - Handles async tasks (notifications, allocations)
+2. **Web Service (Worker)** - Handles async tasks (notifications, allocations)*
 3. **PostgreSQL Database** - Data storage (Free: 256 MB, 1 GB storage)
 4. **Redis** - Session storage and task queue (Free: 25 MB)
+
+*Note: Background Worker service type is not available on free tier, so we use a Web Service configured to run worker tasks.
 
 ## Deployment Options
 
@@ -62,14 +64,16 @@ If you prefer to create services manually:
   ALLOWED_HOSTS=*
   ```
 
-#### 4. Create Background Worker
-- **Service Type**: Background Worker
+#### 4. Create Worker Service (as Web Service)
+- **Service Type**: Web Service
 - **Name**: `tabbycat_worker`
 - **Environment**: Python
 - **Plan**: Free
 - **Build Command**: `./bin/render-compile.sh`
 - **Start Command**: `npm run render-worker`
 - **Environment Variables**: Same as Web Service
+
+*Note: Since Background Worker is not available on free tier, we use a Web Service configured to run worker processes.*
 
 ## Configuration Settings
 
