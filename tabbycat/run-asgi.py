@@ -8,6 +8,11 @@ import logging
 import os
 import sys
 
+print("="*60)
+print("TABBYCAT WEB SERVER STARTING")
+print("This should be the WEBSITE service, not the WORKER service")
+print("="*60)
+
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 ch = logging.StreamHandler(sys.stdout)
