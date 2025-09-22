@@ -17,6 +17,11 @@ services:
         fromDatabase:
           name: tabbycat_database
           property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: tabbycat_redis
+          property: connectionString
       - key: REDIS_HOST
         fromService:
           type: redis
@@ -32,7 +37,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.12.3"
       - key: WEB_CONCURRENCY
-        value: 4
+        value: 2
       - key: TAB_DIRECTOR_EMAIL
         sync: false
       - key: TIME_ZONE
@@ -41,6 +46,51 @@ services:
         value: true
       - key: USING_NGINX
         value: 0 # Not 'false'; is cast
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: "*"
+
+  - type: worker
+    name: tabbycat_worker
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: "./bin/render-compile.sh"
+    startCommand: "npm run render-worker"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tabbycat_database
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: tabbycat_redis
+          property: connectionString
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: tabbycat_redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: tabbycat_redis
+          property: port
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: TAB_DIRECTOR_EMAIL
+        sync: false
+      - key: TIME_ZONE
+        sync: false
+      - key: ON_RENDER
+        value: true
+      - key: DEBUG
+        value: false
+
   - type: redis
     name: tabbycat_redis
     ipAllowList: # required

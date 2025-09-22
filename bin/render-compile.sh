@@ -2,11 +2,12 @@
 # exit on error
 set -o errexit
 
-echo "-----> Install dependencies"
+echo "-----> Install Python dependencies"
+python -m pip install --upgrade pip
 python -m pip install pipenv
-pipenv install --system
+pipenv install --system --deploy
 
-echo "-----> I'm post-compile hook"
+echo "-----> Running post-compile tasks"
 cd ./tabbycat/
 
 echo "-----> Running database migration"
@@ -15,12 +16,15 @@ python manage.py migrate --noinput
 echo "-----> Running dynamic preferences checks"
 python manage.py checkpreferences
 
+echo "-----> Installing Node.js dependencies"
+cd ..
+npm ci --production=false
+
 echo "-----> Running static asset compilation"
-npm install -g @vue/cli-service-global
-npm install
 npm run build
 
 echo "-----> Running static files compilation"
+cd ./tabbycat/
 python manage.py collectstatic --noinput
 
 echo "-----> Post-compile done"
