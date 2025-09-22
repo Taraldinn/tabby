@@ -41,7 +41,7 @@ services:
       - key: TAB_DIRECTOR_EMAIL
         sync: false
       - key: TIME_ZONE
-        sync: false
+        value: "Asia/Dhaka"
       - key: ON_RENDER
         value: 1
       - key: USING_NGINX
@@ -85,7 +85,7 @@ services:
       - key: TAB_DIRECTOR_EMAIL
         sync: false
       - key: TIME_ZONE
-        sync: false
+        value: "Asia/Dhaka"
       - key: ON_RENDER
         value: 1
       - key: DEBUG
