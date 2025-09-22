@@ -13,7 +13,24 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ADMINS = ('Tabbycat Debate', 'contact@tabbycat-debate.org'),
 MANAGERS = ADMINS
-DEBUG = bool(int(os.environ['DEBUG'])) if 'DEBUG' in os.environ else False
+
+# Handle DEBUG environment variable - support both int and boolean strings
+def parse_debug_value():
+    if 'DEBUG' not in os.environ:
+        return False
+    value = os.environ['DEBUG'].lower().strip()
+    if value in ('true', '1', 'yes', 'on'):
+        return True
+    elif value in ('false', '0', 'no', 'off', ''):
+        return False
+    else:
+        # Try to parse as integer for backward compatibility
+        try:
+            return bool(int(value))
+        except (ValueError, TypeError):
+            return False
+
+DEBUG = parse_debug_value()
 ENABLE_DEBUG_TOOLBAR = False # Must default to false; overriden in Dev config
 DISABLE_SENTRY = True # Overriden in Heroku config
 SECRET_KEY = r'#2q43u&tp4((4&m3i8v%w-6z6pp7m(v0-6@w@i!j5n)n15epwc'
