@@ -98,7 +98,6 @@ services:
         value: 1
       - key: DEBUG
         value: 0
-        value: 0
 
   - type: redis
     name: tabio_redis
