@@ -1,12 +1,12 @@
 databases:
-  - name: db
+  - name: tabio_db
     databaseName: tabbycat
     user: tabbycat
     plan: free
 
 services:
   - type: web
-    name: web
+    name: tabio
     env: python
     plan: free
     region: oregon
@@ -15,22 +15,22 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: db
+          name: tabio_db
           property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
-          name: redis
+          name: tabio_redis
           property: connectionString
       - key: REDIS_HOST
         fromService:
           type: redis
-          name: redis
+          name: tabio_redis
           property: host
       - key: REDIS_PORT
         fromService:
           type: redis
-          name: redis
+          name: tabio_redis
           property: port
       - key: DJANGO_SECRET_KEY
         generateValue: true
@@ -41,7 +41,11 @@ services:
       - key: TAB_DIRECTOR_EMAIL
         sync: false
       - key: TIME_ZONE
-        value: "Asia/Dhaka"
+        sync: false
+      - key: TOURNAMENT_NAME
+        sync: false
+      - key: SITE_NAME
+        sync: false
       - key: ON_RENDER
         value: 1
       - key: USING_NGINX
@@ -52,7 +56,7 @@ services:
         value: "*"
 
   - type: web
-    name: worker
+    name: tabio_worker
     env: python
     plan: free
     region: oregon
@@ -61,22 +65,22 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: db
+          name: tabio_db
           property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
-          name: redis
+          name: tabio_redis
           property: connectionString
       - key: REDIS_HOST
         fromService:
           type: redis
-          name: redis
+          name: tabio_redis
           property: host
       - key: REDIS_PORT
         fromService:
           type: redis
-          name: redis
+          name: tabio_redis
           property: port
       - key: DJANGO_SECRET_KEY
         generateValue: true
@@ -85,14 +89,19 @@ services:
       - key: TAB_DIRECTOR_EMAIL
         sync: false
       - key: TIME_ZONE
-        value: "Asia/Dhaka"
+        sync: false
+      - key: TOURNAMENT_NAME
+        sync: false
+      - key: SITE_NAME
+        sync: false
       - key: ON_RENDER
         value: 1
       - key: DEBUG
         value: 0
+        value: 0
 
   - type: redis
-    name: redis
+    name: tabio_redis
     ipAllowList: # required
       - source: 0.0.0.0
         description: everywhere
