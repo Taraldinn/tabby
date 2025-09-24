@@ -105,6 +105,33 @@ This will create:
 1. **Create admin account**: Access your site and create the first admin user
 2. **Configure tournament settings**: Set up your tournament parameters
 3. **Import data**: Add institutions, teams, adjudicators, and venues
-4. **Start your tournament**: Begin registration and draw management
+4. **Test email configuration**: Send a test email to verify email settings are working
+5. **Start your tournament**: Begin registration and draw management
+
+## Email Configuration Testing
+
+To verify that email sending is working correctly:
+
+1. **Access Django admin**: Go to `/admin/` on your deployed site
+2. **Test email**: Use Django's built-in email functionality or create a test view
+3. **Check email settings**: Ensure all email environment variables were set during setup:
+   - `EMAIL_HOST`: Your SMTP server (e.g., `smtp.gmail.com`)
+   - `EMAIL_PORT`: SMTP port (usually `587` for TLS)
+   - `EMAIL_HOST_USER`: Your email username
+   - `EMAIL_HOST_PASSWORD`: Your email password or app password
+   - `EMAIL_USE_TLS`: Set to `true` for secure connections
+   - `DEFAULT_FROM_EMAIL`: The default sender email address
+
+## Troubleshooting
+
+### Email Issues
+- **Connection refused**: Check your SMTP server settings and credentials
+- **Authentication failed**: Verify username/password, consider using app passwords for Gmail
+- **TLS errors**: Ensure `EMAIL_USE_TLS` is set to `true` for secure SMTP servers
+
+### Service Issues
+- **Services not starting**: Check the Render dashboard for build logs and error messages
+- **Database connection**: Verify the database service is running and properly connected
+- **Redis connection**: Ensure the Redis service is accessible to both web and worker services
 
 All services will be automatically configured and connected! 🚀

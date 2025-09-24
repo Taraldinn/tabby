@@ -82,6 +82,29 @@ CHANNEL_LAYERS = {
 }
 
 # ==============================================================================
+# Email Configuration
+# ==============================================================================
+
+# Email configuration from environment variables
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
+
+email_port = os.environ.get("EMAIL_PORT")
+if email_port:
+    EMAIL_PORT = int(email_port)
+
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+
+email_use_tls = os.environ.get("EMAIL_USE_TLS", "").lower()
+EMAIL_USE_TLS = email_use_tls in ("true", "1", "yes")
+
+# Default FROM email address
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# ==============================================================================
 # Sentry
 # ==============================================================================
 
