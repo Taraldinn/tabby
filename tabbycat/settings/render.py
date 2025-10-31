@@ -58,16 +58,41 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 # Debug: Print DATABASE_URL status (password will be hidden in logs)
 if os.environ.get("ON_RENDER"):
     if DATABASE_URL:
-        # Hide password in debug output
-        safe_url = DATABASE_URL.split('@')[0].split(':')[:-1]
+        # Show beginning and end of URL to help diagnose issues
+        if len(DATABASE_URL) > 30:
+            masked = DATABASE_URL[:15] + "..." + DATABASE_URL[-15:]
+        else:
+            masked = DATABASE_URL[:10] + "..."
         print(f"✓ DATABASE_URL is set (length: {len(DATABASE_URL)} chars)")
+        print(f"  Preview: {masked}")
+        print(f"  Starts with 'postgresql://': {DATABASE_URL.startswith('postgresql://')}")
     else:
         print("✗ DATABASE_URL is NOT set or is empty!")
         print(f"  Raw value: '{os.environ.get('DATABASE_URL', 'NOT_FOUND')}'")
 
-if DATABASE_URL and len(DATABASE_URL) > 10:  # Ensure it's not just whitespace or too short
+if (
+    DATABASE_URL and len(DATABASE_URL) > 10
+):  # Ensure it's not just whitespace or too short
     # Parse database URL and enforce SSL for Supabase and other cloud providers
-    db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    try:
+        db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    except ValueError as e:
+        import sys
+        sys.stderr.write(
+            "\n"
+            "=" * 80 + "\n"
+            f"❌ ERROR parsing DATABASE_URL: {e}\n"
+            "\n"
+            f"DATABASE_URL length: {len(DATABASE_URL)} chars\n"
+            f"DATABASE_URL preview: {DATABASE_URL[:20]}...{DATABASE_URL[-20:]}\n"
+            "\n"
+            "Expected format:\n"
+            "  postgresql://postgres:PASSWORD@db.PROJECT.supabase.co:5432/postgres?sslmode=require\n"
+            "\n"
+            "Please check your DATABASE_URL in Render environment variables.\n"
+            "=" * 80 + "\n"
+        )
+        raise
 
     # Ensure SSL is enabled for secure connections (required by Supabase)
     if "OPTIONS" not in db_config:
