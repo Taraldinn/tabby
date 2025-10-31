@@ -55,7 +55,17 @@ if RENDER_EXTERNAL_HOSTNAME:
 # Parse database configuration from $DATABASE_URL
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
-if DATABASE_URL:
+# Debug: Print DATABASE_URL status (password will be hidden in logs)
+if os.environ.get("ON_RENDER"):
+    if DATABASE_URL:
+        # Hide password in debug output
+        safe_url = DATABASE_URL.split('@')[0].split(':')[:-1]
+        print(f"✓ DATABASE_URL is set (length: {len(DATABASE_URL)} chars)")
+    else:
+        print("✗ DATABASE_URL is NOT set or is empty!")
+        print(f"  Raw value: '{os.environ.get('DATABASE_URL', 'NOT_FOUND')}'")
+
+if DATABASE_URL and len(DATABASE_URL) > 10:  # Ensure it's not just whitespace or too short
     # Parse database URL and enforce SSL for Supabase and other cloud providers
     db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 
@@ -77,13 +87,16 @@ else:
         sys.stderr.write(
             "\n"
             "=" * 80 + "\n"
-            "ERROR: DATABASE_URL environment variable is not set!\n"
+            "❌ ERROR: DATABASE_URL environment variable is not set!\n"
             "\n"
             "You need to add DATABASE_URL to your Render service:\n"
             "1. Go to Render Dashboard → Your Service → Environment\n"
             "2. Add environment variable: DATABASE_URL\n"
             "3. Set value to your Supabase connection string:\n"
             "   postgresql://postgres:PASSWORD@db.PROJECT.supabase.co:5432/postgres?sslmode=require\n"
+            "\n"
+            "Your Supabase URL should be:\n"
+            "   postgresql://postgres:tabio4545@db.enzpcumjosskxgpnahnk.supabase.co:5432/postgres?sslmode=require\n"
             "\n"
             "Or use the render.yaml blueprint which prompts for this automatically.\n"
             "=" * 80 + "\n"
