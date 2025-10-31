@@ -35,14 +35,15 @@ def resolve_hostname_to_ipv4(url):
     """
     if not url or "supabase.co" not in url:
         return url
-    
+
     import re
+
     # Extract hostname from postgresql://user:pass@HOSTNAME:port/db
-    match = re.search(r'@([^:]+):(\d+)', url)
+    match = re.search(r"@([^:]+):(\d+)", url)
     if match:
         hostname = match.group(1)
         port = match.group(2)
-        
+
         try:
             # Resolve to IPv4 only
             ipv4_address = socket.gethostbyname(hostname)
@@ -53,8 +54,9 @@ def resolve_hostname_to_ipv4(url):
         except socket.gaierror as e:
             print(f"⚠️  Could not resolve {hostname} to IPv4: {e}")
             return url
-    
+
     return url
+
 
 # ==============================================================================
 # Render per https://render.com/docs/deploy-django
@@ -98,7 +100,9 @@ if os.environ.get("ON_RENDER"):
             masked = DATABASE_URL[:10] + "..."
         print(f"✓ DATABASE_URL is set (length: {len(DATABASE_URL)} chars)")
         print(f"  Preview: {masked}")
-        print(f"  Starts with 'postgresql://': {DATABASE_URL.startswith('postgresql://')}")
+        print(
+            f"  Starts with 'postgresql://': {DATABASE_URL.startswith('postgresql://')}"
+        )
     else:
         print("✗ DATABASE_URL is NOT set or is empty!")
         print(f"  Raw value: '{os.environ.get('DATABASE_URL', 'NOT_FOUND')}'")
@@ -111,6 +115,7 @@ if (
         db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     except ValueError as e:
         import sys
+
         sys.stderr.write(
             "\n"
             "=" * 80 + "\n"
