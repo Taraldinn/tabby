@@ -2,6 +2,25 @@
 
 When you deploy this Tabbycat blueprint on Render, you'll be prompted to provide the following information:
 
+## Prerequisites
+
+### Database Setup
+
+This blueprint requires an external PostgreSQL database. You can use:
+
+1. **Supabase** (Recommended - Free tier available)
+   - Go to [supabase.com](https://supabase.com) and create a new project
+   - Navigate to **Settings** → **Database**
+   - Copy the **Connection string** (URI format)
+   - Example: `postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require`
+
+2. **Other PostgreSQL providers**
+   - AWS RDS
+   - Digital Ocean Managed Databases
+   - ElephantSQL
+   - Neon
+   - Any PostgreSQL 12+ database
+
 ## Required Configuration
 
 ### 📧 **TAB_DIRECTOR_EMAIL**
@@ -57,14 +76,29 @@ When you deploy this Tabbycat blueprint on Render, you'll be prompted to provide
 - **Example**: `noreply@tournament.com`, `WUDC 2025 <notifications@wudc.org>`
 - **Used for**: All automated emails from the system
 
+### 🗄️ **DATABASE_URL** (Required)
+- **What it is**: PostgreSQL database connection string
+- **Example**: `postgresql://user:password@host:5432/database?sslmode=require`
+- **Options**: 
+  - Use Render's internal PostgreSQL (free tier)
+  - Use external database (Supabase, AWS RDS, etc.)
+- **For Supabase**: 
+  - Go to **Settings** → **Database** in your Supabase project
+  - Copy the **Connection string** (URI format)
+  - **Important**: Make sure it ends with `?sslmode=require`
+  - Example: `postgresql://postgres:yourpassword@db.xxxxx.supabase.co:5432/postgres?sslmode=require`
+- **IPv6 Note**: The app automatically forces IPv4 connections to work with Render's network
+  - Format: `postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require`
+
 ## Service Names (Customizable)
 
 You can customize the service names during blueprint setup:
 
 - **Main Web Service**: `tabio` → Change to your tournament name (e.g., `wudc2025`)
 - **Worker Service**: `tabio_worker` → Will become `yourname_worker`
-- **Database**: `tabio_db` → Will become `yourname_db`
 - **Redis**: `tabio_redis` → Will become `yourname_redis`
+
+**Note**: This blueprint uses external database (like Supabase) instead of Render's internal database service.
 
 ## Example Configuration
 
@@ -123,6 +157,18 @@ To verify that email sending is working correctly:
    - `DEFAULT_FROM_EMAIL`: The default sender email address
 
 ## Troubleshooting
+
+### Database Issues
+- **"Network is unreachable"**: This is an IPv6 connectivity issue between Render and Supabase
+  - ✅ **Already fixed**: The app automatically forces IPv4 connections
+  - Ensure your `DATABASE_URL` includes `?sslmode=require`
+  - Verify your Supabase database is active (not paused)
+- **"No support for ''"**: The `DATABASE_URL` is empty
+  - Check that you entered the database URL during blueprint setup
+  - Go to Render dashboard → Service → Environment → Add `DATABASE_URL`
+- **SSL/TLS errors**: 
+  - Ensure `?sslmode=require` is at the end of your `DATABASE_URL`
+  - Check Supabase SSL certificate is valid
 
 ### Email Issues
 - **Connection refused**: Check your SMTP server settings and credentials

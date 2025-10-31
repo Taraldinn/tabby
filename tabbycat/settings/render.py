@@ -1,5 +1,6 @@
 import logging
 import os
+import socket
 
 import dj_database_url
 import sentry_sdk
@@ -8,6 +9,23 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 
 from .core import TABBYCAT_VERSION
+
+# ==============================================================================
+# IPv4 Fix for Render + Supabase
+# ==============================================================================
+# Render doesn't support outbound IPv6, but Supabase may resolve to IPv6 first.
+# Force IPv4 resolution to ensure database connectivity.
+
+old_getaddrinfo = socket.getaddrinfo
+
+
+def new_getaddrinfo(host, *args, **kwargs):
+    """Force IPv4 address resolution for all socket connections."""
+    kwargs["family"] = socket.AF_INET
+    return old_getaddrinfo(host, *args, **kwargs)
+
+
+socket.getaddrinfo = new_getaddrinfo
 
 # ==============================================================================
 # Render per https://render.com/docs/deploy-django
@@ -35,13 +53,33 @@ if RENDER_EXTERNAL_HOSTNAME:
 # ==============================================================================
 
 # Parse database configuration from $DATABASE_URL
-DATABASES = {
-    "default": dj_database_url.config(
-        # Feel free to alter this value to suit your needs.
-        default="postgresql://postgres:postgres@localhost:5432/mysite",
-        conn_max_age=600,
-    )
-}
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    # Parse database URL and enforce SSL for Supabase and other cloud providers
+    db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+
+    # Ensure SSL is enabled for secure connections (required by Supabase)
+    if "OPTIONS" not in db_config:
+        db_config["OPTIONS"] = {}
+
+    # Force SSL mode if not already specified in the URL
+    if "sslmode" not in DATABASE_URL.lower():
+        db_config["OPTIONS"]["sslmode"] = "require"
+
+    DATABASES = {"default": db_config}
+else:
+    # Default database configuration for local development
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "tabbycat",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "localhost",
+            "PORT": "5432",
+        }
+    }
 
 # ==============================================================================
 # Redis
@@ -49,15 +87,15 @@ DATABASES = {
 
 # Support both REDIS_URL and individual REDIS_HOST/REDIS_PORT
 REDIS_URL = os.environ.get("REDIS_URL")
-REDIS_HOST = os.environ.get("REDIS_HOST")
-REDIS_PORT = os.environ.get("REDIS_PORT")
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
 
 if REDIS_URL:
     # Use REDIS_URL if available (preferred for Render)
     redis_location = REDIS_URL
 else:
     # Fall back to host/port configuration
-    redis_location = "redis://" + REDIS_HOST + ":" + REDIS_PORT
+    redis_location = f"redis://{REDIS_HOST}:{REDIS_PORT}"
 
 CACHES = {
     "default": {
