@@ -49,10 +49,7 @@ def resolve_hostname_to_ipv4(url):
         try:
             # Force IPv4 resolution using the original getaddrinfo with AF_INET
             addr_info = _original_getaddrinfo(
-                hostname, 
-                None, 
-                socket.AF_INET,  # Force IPv4
-                socket.SOCK_STREAM
+                hostname, None, socket.AF_INET, socket.SOCK_STREAM  # Force IPv4
             )
             if addr_info:
                 ipv4_address = addr_info[0][4][0]  # Get the first IPv4 address
