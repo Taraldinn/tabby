@@ -16,15 +16,17 @@ from .core import TABBYCAT_VERSION
 # Render doesn't support outbound IPv6, but Supabase may resolve to IPv6 first.
 # Force IPv4 resolution to ensure database connectivity.
 
-old_getaddrinfo = socket.getaddrinfo
+# Save the original getaddrinfo before patching
+_original_getaddrinfo = socket.getaddrinfo
 
 
 def new_getaddrinfo(host, *args, **kwargs):
     """Force IPv4 address resolution for all socket connections."""
     # Force IPv4 family
-    return old_getaddrinfo(host, *args, family=socket.AF_INET, **kwargs)
+    return _original_getaddrinfo(host, *args, family=socket.AF_INET, **kwargs)
 
 
+# Apply the patch
 socket.getaddrinfo = new_getaddrinfo
 
 
@@ -45,14 +47,22 @@ def resolve_hostname_to_ipv4(url):
         port = match.group(2)
 
         try:
-            # Resolve to IPv4 only
-            ipv4_address = socket.gethostbyname(hostname)
-            # Replace hostname with IPv4 address
-            new_url = url.replace(f"@{hostname}:", f"@{ipv4_address}:")
-            print(f"🔧 Resolved {hostname} to {ipv4_address}")
-            return new_url
-        except socket.gaierror as e:
+            # Force IPv4 resolution using the original getaddrinfo with AF_INET
+            addr_info = _original_getaddrinfo(
+                hostname, 
+                None, 
+                socket.AF_INET,  # Force IPv4
+                socket.SOCK_STREAM
+            )
+            if addr_info:
+                ipv4_address = addr_info[0][4][0]  # Get the first IPv4 address
+                # Replace hostname with IPv4 address
+                new_url = url.replace(f"@{hostname}:", f"@{ipv4_address}:")
+                print(f"🔧 IPv4 Fix: Resolved {hostname} → {ipv4_address}")
+                return new_url
+        except (socket.gaierror, IndexError) as e:
             print(f"⚠️  Could not resolve {hostname} to IPv4: {e}")
+            print(f"   Will try with hostname anyway...")
             return url
 
     return url
