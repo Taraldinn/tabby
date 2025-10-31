@@ -21,11 +21,40 @@ old_getaddrinfo = socket.getaddrinfo
 
 def new_getaddrinfo(host, *args, **kwargs):
     """Force IPv4 address resolution for all socket connections."""
-    kwargs["family"] = socket.AF_INET
-    return old_getaddrinfo(host, *args, **kwargs)
+    # Force IPv4 family
+    return old_getaddrinfo(host, *args, family=socket.AF_INET, **kwargs)
 
 
 socket.getaddrinfo = new_getaddrinfo
+
+
+def resolve_hostname_to_ipv4(url):
+    """
+    Resolve hostname in DATABASE_URL to IPv4 address to bypass IPv6 issues.
+    This is needed because Render doesn't support outbound IPv6 connections.
+    """
+    if not url or "supabase.co" not in url:
+        return url
+    
+    import re
+    # Extract hostname from postgresql://user:pass@HOSTNAME:port/db
+    match = re.search(r'@([^:]+):(\d+)', url)
+    if match:
+        hostname = match.group(1)
+        port = match.group(2)
+        
+        try:
+            # Resolve to IPv4 only
+            ipv4_address = socket.gethostbyname(hostname)
+            # Replace hostname with IPv4 address
+            new_url = url.replace(f"@{hostname}:", f"@{ipv4_address}:")
+            print(f"🔧 Resolved {hostname} to {ipv4_address}")
+            return new_url
+        except socket.gaierror as e:
+            print(f"⚠️  Could not resolve {hostname} to IPv4: {e}")
+            return url
+    
+    return url
 
 # ==============================================================================
 # Render per https://render.com/docs/deploy-django
@@ -54,6 +83,10 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 # Parse database configuration from $DATABASE_URL
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+
+# Resolve Supabase hostname to IPv4 to avoid Render's IPv6 connectivity issues
+if DATABASE_URL and os.environ.get("ON_RENDER"):
+    DATABASE_URL = resolve_hostname_to_ipv4(DATABASE_URL)
 
 # Debug: Print DATABASE_URL status (password will be hidden in logs)
 if os.environ.get("ON_RENDER"):
