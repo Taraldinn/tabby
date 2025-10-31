@@ -53,7 +53,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 # ==============================================================================
 
 # Parse database configuration from $DATABASE_URL
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
 if DATABASE_URL:
     # Parse database URL and enforce SSL for Supabase and other cloud providers
@@ -70,6 +70,29 @@ if DATABASE_URL:
     DATABASES = {"default": db_config}
 else:
     # Default database configuration for local development
+    # WARNING: This will fail on Render if DATABASE_URL is not set!
+    import sys
+
+    if os.environ.get("ON_RENDER"):
+        sys.stderr.write(
+            "\n"
+            "=" * 80 + "\n"
+            "ERROR: DATABASE_URL environment variable is not set!\n"
+            "\n"
+            "You need to add DATABASE_URL to your Render service:\n"
+            "1. Go to Render Dashboard → Your Service → Environment\n"
+            "2. Add environment variable: DATABASE_URL\n"
+            "3. Set value to your Supabase connection string:\n"
+            "   postgresql://postgres:PASSWORD@db.PROJECT.supabase.co:5432/postgres?sslmode=require\n"
+            "\n"
+            "Or use the render.yaml blueprint which prompts for this automatically.\n"
+            "=" * 80 + "\n"
+        )
+        raise ValueError(
+            "DATABASE_URL environment variable is required on Render. "
+            "Please add it to your service environment variables."
+        )
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
