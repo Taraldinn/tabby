@@ -19,5 +19,11 @@ cmds = [
 [start]
 cmd = "gunicorn wsgi:application --config config/gunicorn.conf"
 
+# Static files directory - served by NGINX
+# This is where collectstatic puts all static assets
+staticAssets = {
+  outDir = "staticfiles"
+}
+
 [variables]
 DJANGO_SETTINGS_MODULE = "settings"

@@ -150,9 +150,19 @@ If using Nixpacks instead of buildpacks:
 [phases.setup]
 nixPkgs = ["nodejs-18_x", "python311"]
 
+[phases.build]
+cmds = ["python manage.py collectstatic --noinput"]
+
 [start]
 cmd = "gunicorn wsgi:application --config config/gunicorn.conf"
+
+# Serve static files via NGINX (optional but recommended)
+staticAssets = {
+  outDir = "staticfiles"
+}
 ```
+
+**Note:** The `staticAssets.outDir` tells Nixpacks to automatically configure NGINX to serve files from the `staticfiles/` directory. This improves performance by offloading static file serving from Django to NGINX.
 
 ## Post-Deployment
 
@@ -300,6 +310,40 @@ DISABLE_SENTRY=0  # Enable error tracking
 ✅ Complex multi-service setup  
 
 ## Advanced Configuration
+
+### Static File Serving with Nixpacks
+
+Nixpacks can automatically configure NGINX to serve static files, which significantly improves performance:
+
+**nixpacks.toml with static assets:**
+```toml
+[phases.build]
+cmds = [
+  "python manage.py collectstatic --noinput"
+]
+
+[start]
+cmd = "gunicorn wsgi:application --config config/gunicorn.conf"
+
+# NGINX will serve files from this directory
+staticAssets = {
+  outDir = "staticfiles"
+}
+```
+
+**How it works:**
+1. During build, Django collects all static files to `staticfiles/` directory
+2. Nixpacks configures NGINX to serve requests to `/static/*` directly from `staticfiles/`
+3. All other requests are proxied to Gunicorn/Django
+4. This reduces load on Django and improves response times for CSS/JS/images
+
+**For static-only sites:**
+If you wanted to serve ONLY static files (not applicable to Tabbycat, but useful to know):
+```toml
+# This would serve the entire site as static files via NGINX
+# No Python/Django process would run
+publish = "staticfiles"
+```
 
 ### Custom Buildpack
 
