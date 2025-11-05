@@ -1,25 +1,14 @@
-# Nixpacks Configuration for Dokploy
-
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "python311", "postgresql", "redis"]
+nixPkgs = ["python311", "nodejs-18_x", "postgresql"]
 
 [phases.install]
 cmds = [
-  "pip install pipenv",
-  "pipenv install --system --deploy",
+  "pip install -r requirements.txt",
   "npm ci --only=production"
 ]
 
 [phases.build]
-cmds = [
-  "python manage.py collectstatic --noinput"
-]
+cmds = ["python manage.py collectstatic --noinput"]
 
 [start]
-cmd = "gunicorn tabbycat.wsgi:application --bind 0.0.0.0:8000"
-
-[variables]
-DJANGO_SETTINGS_MODULE = "tabbycat.settings.core"
-
-[staticAssets]
-outDir = "staticfiles"
+cmd = "gunicorn tabbycat.wsgi:application --bind 0.0.0.0:$PORT"
