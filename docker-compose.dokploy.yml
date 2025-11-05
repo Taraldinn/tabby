@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tabbycat}
+      POSTGRES_USER: ${POSTGRES_USER:-tabbycat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tabbycat}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tabbycat-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tabbycat}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - tabbycat-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dokploy
+    restart: unless-stopped
+    command: >
+      sh -c "
+        python manage.py collectstatic --noinput &&
+        python manage.py migrate &&
+        gunicorn wsgi:application --config config/gunicorn.conf
+      "
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      # Django settings
+      DJANGO_SETTINGS_MODULE: settings
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG:-0}
+      DISABLE_SENTRY: ${DISABLE_SENTRY:-1}
+      
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tabbycat}:${POSTGRES_PASSWORD:-tabbycat}@db:5432/${POSTGRES_DB:-tabbycat}
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # Email (optional)
+      EMAIL_HOST: ${EMAIL_HOST:-}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-1}
+      
+      # Site configuration
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    networks:
+      - tabbycat-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dokploy
+    restart: unless-stopped
+    command: python manage.py runworker notifications adjallocation venues
+    environment:
+      # Django settings
+      DJANGO_SETTINGS_MODULE: settings
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG:-0}
+      
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tabbycat}:${POSTGRES_PASSWORD:-tabbycat}@db:5432/${POSTGRES_DB:-tabbycat}
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+    networks:
+      - tabbycat-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/usr/share/nginx/html/static:ro
+      - media_volume:/usr/share/nginx/html/media:ro
+    networks:
+      - tabbycat-network
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  tabbycat-network:
+    driver: bridge
