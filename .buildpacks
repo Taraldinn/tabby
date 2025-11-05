@@ -1,0 +1,9 @@
+# Dokploy Buildpack Configuration
+# This file tells Dokploy which buildpacks to use when building your application
+# Buildpacks are an alternative to Dockerfile for building applications
+
+# Node.js buildpack for frontend assets (npm, webpack, etc.)
+https://github.com/heroku/heroku-buildpack-nodejs.git
+
+# Python buildpack for Django backend
+https://github.com/heroku/heroku-buildpack-python.git

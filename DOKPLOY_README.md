@@ -14,6 +14,13 @@ Dokploy is a self-hosted, open-source Platform as a Service (PaaS) that makes it
 
 ## Quick Deploy (3 Steps)
 
+### Choose Your Deployment Method
+
+**Option A: Docker Compose** (Full control, recommended for complex setups)  
+**Option B: Buildpacks** (Simpler, Heroku-style deployment)
+
+### Docker Compose Method
+
 ### 1️⃣ Create Application in Dokploy
 
 1. Open Dokploy dashboard: `http://your-server:3000`
@@ -49,6 +56,30 @@ python -c 'from django.core.management.utils import get_random_secret_key; print
 Click **"Deploy"** and wait ~3-5 minutes.
 
 Access your site at: `http://your-domain` or `http://your-server-ip`
+
+---
+
+### Buildpack Method (Alternative)
+
+### 1️⃣ Create Application
+
+1. Dokploy dashboard → **"Create Application"**
+2. Choose **"Buildpack"**
+3. Connect Git repository
+4. Buildpacks auto-detect, or use `.buildpacks` file
+
+### 2️⃣ Add Services
+
+- PostgreSQL 15
+- Redis 7
+
+### 3️⃣ Configure & Deploy
+
+Same environment variables as Docker method, then click **"Deploy"**
+
+📖 **Full Buildpack Guide:** [DOKPLOY_BUILDPACK.md](./DOKPLOY_BUILDPACK.md)
+
+---
 
 ## What Gets Deployed?
 

@@ -1,0 +1,23 @@
+# Nixpacks Configuration for Dokploy
+# Alternative build system to Dockerfile and Buildpacks
+
+[phases.setup]
+nixPkgs = ["nodejs-18_x", "python311", "postgresql", "redis"]
+
+[phases.install]
+cmds = [
+  "pip install pipenv",
+  "pipenv install --system --deploy",
+  "npm ci --only=production"
+]
+
+[phases.build]
+cmds = [
+  "python manage.py collectstatic --noinput"
+]
+
+[start]
+cmd = "gunicorn wsgi:application --config config/gunicorn.conf"
+
+[variables]
+DJANGO_SETTINGS_MODULE = "settings"

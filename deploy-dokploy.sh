@@ -26,23 +26,25 @@ fi
 
 echo ""
 echo "🔧 Deployment Options:"
-echo "1. Deploy to Dokploy (recommended)"
-echo "2. Test locally with Docker Compose"
+echo "1. Deploy to Dokploy with Docker (recommended)"
+echo "2. Deploy to Dokploy with Buildpacks (simpler)"
+echo "3. Test locally with Docker Compose"
 echo ""
-read -p "Choose option (1 or 2): " option
+read -p "Choose option (1, 2, or 3): " option
 
 case $option in
     1)
         echo ""
-        echo "📋 Dokploy Deployment Checklist:"
-        echo "================================"
+        echo "📋 Dokploy Docker Deployment Checklist:"
+        echo "========================================"
         echo ""
         echo "1. ✅ Ensure Dokploy is installed and running"
         echo "2. ✅ Create a new application in Dokploy dashboard"
         echo "3. ✅ Connect your Git repository"
-        echo "4. ✅ Set compose file path: docker-compose.dokploy.yml"
-        echo "5. ✅ Add environment variables from .env file"
-        echo "6. ✅ Click Deploy"
+        echo "4. ✅ Choose 'Docker Compose' as build method"
+        echo "5. ✅ Set compose file path: docker-compose.dokploy.yml"
+        echo "6. ✅ Add environment variables from .env file"
+        echo "7. ✅ Click Deploy"
         echo ""
         echo "📖 Full guide: DOKPLOY_DEPLOYMENT.md"
         echo ""
@@ -51,6 +53,30 @@ case $option in
         echo ""
         ;;
     2)
+        echo ""
+        echo "📋 Dokploy Buildpack Deployment Checklist:"
+        echo "==========================================="
+        echo ""
+        echo "1. ✅ Ensure Dokploy is installed and running"
+        echo "2. ✅ Create a new application in Dokploy dashboard"
+        echo "3. ✅ Connect your Git repository"
+        echo "4. ✅ Choose 'Buildpack' as build method"
+        echo "5. ✅ Buildpacks will auto-detect (or use .buildpacks file)"
+        echo "6. ✅ Add PostgreSQL and Redis services"
+        echo "7. ✅ Add environment variables from .env file"
+        echo "8. ✅ Click Deploy"
+        echo ""
+        echo "📖 Full guide: DOKPLOY_BUILDPACK.md"
+        echo ""
+        echo "🔑 Generate SECRET_KEY:"
+        python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+        echo ""
+        echo "📦 Available buildpacks:"
+        echo "   - heroku/nodejs (for frontend assets)"
+        echo "   - heroku/python (for Django backend)"
+        echo ""
+        ;;
+    3)
         echo ""
         echo "🐳 Testing locally with Docker Compose..."
         echo ""

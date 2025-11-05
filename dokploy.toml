@@ -1,0 +1,48 @@
+# Dokploy Configuration File (dokploy.toml)
+# Use this for buildpack-based deployments (alternative to Docker)
+
+[build]
+# Build method: "dockerfile" or "buildpack"
+builder = "buildpack"
+
+# Buildpacks to use (in order)
+buildpacks = [
+  "heroku/nodejs",
+  "heroku/python"
+]
+
+[deploy]
+# Port the application listens on
+port = 8000
+
+# Health check configuration
+healthcheck.path = "/"
+healthcheck.interval = 30
+healthcheck.timeout = 10
+
+[env]
+# Default environment variables
+# Override these in Dokploy dashboard
+DJANGO_SETTINGS_MODULE = "settings"
+DEBUG = "0"
+DISABLE_SENTRY = "1"
+
+[services.web]
+# Web process
+command = "gunicorn wsgi:application --config config/gunicorn.conf"
+instances = 1
+
+[services.worker]
+# Background worker process
+command = "python manage.py runworker notifications adjallocation venues"
+instances = 1
+
+[services.postgres]
+# PostgreSQL database
+image = "postgres:15-alpine"
+volume = "/var/lib/postgresql/data"
+
+[services.redis]
+# Redis cache
+image = "redis:7-alpine"
+volume = "/data"
