@@ -1,5 +1,4 @@
 # Nixpacks Configuration for Dokploy
-# Alternative build system to Dockerfile and Buildpacks
 
 [phases.setup]
 nixPkgs = ["nodejs-18_x", "python311", "postgresql", "redis"]
@@ -17,13 +16,10 @@ cmds = [
 ]
 
 [start]
-cmd = "gunicorn wsgi:application --config config/gunicorn.conf"
-
-# Static files directory - served by NGINX
-# This is where collectstatic puts all static assets
-staticAssets = {
-  outDir = "staticfiles"
-}
+cmd = "gunicorn tabbycat.wsgi:application --bind 0.0.0.0:8000"
 
 [variables]
-DJANGO_SETTINGS_MODULE = "settings"
+DJANGO_SETTINGS_MODULE = "tabbycat.settings.core"
+
+[staticAssets]
+outDir = "staticfiles"
