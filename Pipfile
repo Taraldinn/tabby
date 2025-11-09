@@ -40,6 +40,9 @@ drf-spectacular = "*"
 daphne = "*"
 drf-link-header-pagination = "*"
 networkx = "*" # Avoid its dependencies (SciPy)
+django-tenants = "*"
+djangorestframework-simplejwt = "*"
+pyjwt = "*"
 
 [dev-packages]
 pre-commit = "*"
