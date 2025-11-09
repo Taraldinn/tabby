@@ -35,6 +35,7 @@ SHARED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django_summernote",
     # Multi-tenancy management apps (in public schema only)
     "tenants",  # Tenant and Domain models
     "tenant_control",  # Super admin dashboard backend
@@ -45,15 +46,9 @@ SHARED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "django_extensions",
-]
-
-# Apps that should only be available in TENANT schemas
-# These contain tenant-specific data (tournaments, teams, results, etc.)
-TENANT_APPS = [
-    "django.contrib.contenttypes",  # Required in tenant schemas
+    # For initial setup, include all Tabbycat apps in shared
+    # These will be migrated to tenant-only in future iterations
     "channels",
-    "django_summernote",
-    # Tabbycat tournament management apps
     "actionlog",
     "adjallocation",
     "adjfeedback",
@@ -76,7 +71,6 @@ TENANT_APPS = [
     "notifications",
     "importer",
     "registration",
-    # Additional tenant-specific utilities
     "dynamic_preferences",
     "gfklookupwidget",
     "formtools",
@@ -84,6 +78,13 @@ TENANT_APPS = [
     "polymorphic",
     "drf_spectacular",
     "django_better_admin_arrayfield",
+]
+
+# Apps that should only be available in TENANT schemas
+# These contain tenant-specific data (tournaments, teams, results, etc.)
+# For now, keeping empty - we'll migrate apps here once base setup works
+TENANT_APPS = [
+    "django.contrib.contenttypes",  # Required in tenant schemas
 ]
 
 # Combined installed apps (django-tenants requires this structure)
